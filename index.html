@@ -2,32 +2,30 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>指ジェスチャー魔法AR</title>
+  <title>魔法AR（ボタン版）</title>
   <style>
     body { margin: 0; overflow: hidden; }
     video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
     canvas { position: absolute; top: 0; left: 0; }
-    #switchCamera {
+    .ui-btn {
       position: absolute;
-      top: 20px;
-      left: 20px;
       z-index: 1000;
+      padding: 10px 15px;
       font-size: 16px;
-      padding: 8px 12px;
+      border-radius: 5px;
       background-color: rgba(255,255,255,0.8);
       border: 1px solid #333;
-      border-radius: 5px;
       cursor: pointer;
     }
+    #switchCamera { top: 20px; left: 20px; }
+    #fireMagic { top: 70px; left: 20px; }
   </style>
 </head>
 <body>
-  <button id="switchCamera">カメラ切替</button>
+  <button id="switchCamera" class="ui-btn">カメラ切替</button>
+  <button id="fireMagic" class="ui-btn">魔法発動</button>
   <video id="webcam" autoplay playsinline></video>
 
-  <!-- ライブラリ -->
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.153.0/build/three.min.js"></script>
   <script src="main.js"></script>
 </body>
