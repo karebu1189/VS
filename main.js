@@ -36,10 +36,10 @@ window.addEventListener('DOMContentLoaded', async () => {
     console.log("魔法生成"); // デバッグ
 
     // 魔法球
-    const geometry = new THREE.SphereGeometry(0.1,16,16);
+    const geometry = new THREE.SphereGeometry(0.3,32,32); // 大きくした
     const material = new THREE.MeshBasicMaterial({ color:0xff0000 });
     const magic = new THREE.Mesh(geometry, material);
-    magic.position.set(0,0,-1); // 画面中央
+    magic.position.set(0,0,-1); // カメラ前方に表示
     scene.add(magic);
     magics.push(magic);
 
@@ -47,10 +47,10 @@ window.addEventListener('DOMContentLoaded', async () => {
     const textureLoader = new THREE.TextureLoader();
     const circleTexture = textureLoader.load('https://i.imgur.com/TQd2E9n.png'); // 仮画像
     const plane = new THREE.Mesh(
-      new THREE.PlaneGeometry(0.5,0.5),
+      new THREE.PlaneGeometry(0.7,0.7),
       new THREE.MeshBasicMaterial({ map:circleTexture, transparent:true })
     );
-    plane.position.set(0,-0.15,-1); // 魔法球の下
+    plane.position.set(0,-0.25,-1); // 魔法球の下
     plane.rotation.x = -Math.PI/2;
     plane.scale.set(0.1,0.1,0.1);
     scene.add(plane);
