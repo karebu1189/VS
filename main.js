@@ -8,18 +8,9 @@ window.addEventListener('DOMContentLoaded', async () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
   document.body.appendChild(renderer.domElement);
 
-  // 魔法作成関数
-  function createMagic(color='red') {
-    const geometry = new THREE.SphereGeometry(0.1, 16, 16);
-    const material = new THREE.MeshBasicMaterial({ color });
-    const magic = new THREE.Mesh(geometry, material);
-    scene.add(magic);
-    return magic;
-  }
-
   // ================== カメラ設定 ==================
   const videoElement = document.getElementById('webcam');
-  let currentFacing = 'user'; // 初期は前面カメラ
+  let currentFacing = 'user';
 
   async function startCamera(facing) {
     if(videoElement.srcObject){
@@ -29,55 +20,62 @@ window.addEventListener('DOMContentLoaded', async () => {
     videoElement.srcObject = stream;
   }
 
-  // ボタンでカメラ切替
-  const switchBtn = document.getElementById('switchCamera');
-  switchBtn.addEventListener('click', () => {
+  document.getElementById('switchCamera').addEventListener('click', () => {
     currentFacing = currentFacing === 'user' ? 'environment' : 'user';
     startCamera(currentFacing);
   });
-
-  // 初期カメラ起動
   startCamera(currentFacing);
-
-  // ================== MediaPipe Hands ==================
-  const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
-  hands.setOptions({maxNumHands:1, minDetectionConfidence:0.7});
-  
-  hands.onResults(onResults);
-
-  const cameraUtils = new Camera(videoElement, { onFrame: async () => { await hands.send({image: videoElement}); }, width:640, height:480 });
-  cameraUtils.start();
 
   // ================== 魔法配列 ==================
   let magics = [];
+  let magicCircles = [];
 
-  function onResults(results) {
-    if (!results.multiHandLandmarks) return;
-    const landmarks = results.multiHandLandmarks[0];
+  // ================== 魔法作成関数 ==================
+  function createMagic() {
+    const geometry = new THREE.SphereGeometry(0.1, 16, 16);
+    const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+    const magic = new THREE.Mesh(geometry, material);
+    magic.position.set(0, -1, -1);
+    scene.add(magic);
+    magics.push(magic);
 
-    const indexFinger = landmarks[8];
-    const middleFinger = landmarks[12];
-
-    const isIndexUp = indexFinger.y < landmarks[6].y;
-    const isMiddleDown = middleFinger.y > landmarks[10].y;
-
-    if (isIndexUp && isMiddleDown) {
-      const magic = createMagic('red');
-      magic.position.set(indexFinger.x*5-2.5, -indexFinger.y*5+2.5, -1);
-      magics.push(magic);
-    }
+    // 魔法陣
+    const textureLoader = new THREE.TextureLoader();
+    const circleTexture = textureLoader.load('https://i.imgur.com/TQd2E9n.png'); // 仮魔法陣画像
+    const plane = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.5, 0.5),
+      new THREE.MeshBasicMaterial({ map: circleTexture, transparent: true })
+    );
+    plane.position.set(0, -1.1, -1);
+    plane.rotation.x = -Math.PI/2;
+    plane.scale.set(0.1, 0.1, 0.1);
+    scene.add(plane);
+    magicCircles.push({mesh: plane, scale: 0.1});
   }
+
+  document.getElementById('fireMagic').addEventListener('click', createMagic);
 
   // ================== アニメーションループ ==================
   function animate() {
     requestAnimationFrame(animate);
 
-    // 魔法を前方に移動
+    // 魔法球移動
     magics.forEach((m, i) => {
       m.position.z -= 0.1;
-      if (m.position.z < -5) {
+      if(m.position.z < -5){
         scene.remove(m);
-        magics.splice(i, 1);
+        magics.splice(i,1);
+      }
+    });
+
+    // 魔法陣アニメーション
+    magicCircles.forEach((mc, i) => {
+      mc.scale += 0.05;
+      mc.mesh.scale.set(mc.scale, mc.scale, mc.scale);
+      mc.mesh.material.opacity = 1 - mc.scale;
+      if(mc.scale >= 1){
+        scene.remove(mc.mesh);
+        magicCircles.splice(i,1);
       }
     });
 
@@ -85,7 +83,6 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
   animate();
 
-  // ================== ウィンドウリサイズ対応 ==================
   window.addEventListener('resize', () => {
     camera3D.aspect = window.innerWidth / window.innerHeight;
     camera3D.updateProjectionMatrix();
